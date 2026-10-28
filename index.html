@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f7c948">
+<title>Meu Bloco — Notas</title>
+<style>
+:root{--bg:#f5f5f2;--surface:#fff;--text:#252525;--muted:#737373;--line:#e8e5dd;--accent:#f5c542;--shadow:0 3px 14px #0000000b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+button,input,textarea,select{font:inherit}button{cursor:pointer;border:0}
+header{position:sticky;top:0;z-index:5;background:var(--accent);padding:calc(12px + env(safe-area-inset-top)) 16px 12px;box-shadow:0 2px 7px #00000012}
+.top{display:flex;align-items:center;gap:10px}.brand{font-weight:800;font-size:22px;flex:1}.iconbtn{background:#ffffff65;border-radius:12px;width:42px;height:42px;font-size:20px}
+.searchwrap{margin-top:12px}.searchwrap input{width:100%;border:0;border-radius:13px;background:#ffffffbd;padding:12px 14px;outline:none}
+main{max-width:920px;margin:auto;padding:14px 14px 100px}.toolbar{display:flex;gap:8px;align-items:center;margin:2px 0 14px}.pill{background:#fff;border:1px solid var(--line);padding:8px 12px;border-radius:999px;color:#444}.pill.active{background:#282828;color:white;border-color:#282828}.count{color:var(--muted);font-size:13px;margin-left:0}
+.notes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.note{position:relative;border-radius:14px;padding:14px;min-height:132px;box-shadow:var(--shadow);border:1px solid #00000008;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;gap:7px}.note h3{font-size:16px;line-height:1.25;margin:0;overflow-wrap:anywhere}.preview{font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;color:#383838}.notefoot{margin-top:auto;display:flex;align-items:center;gap:6px;color:#696969;font-size:11px}.thumbs{display:flex;gap:5px;overflow:hidden}.thumbs img{width:56px;height:48px;object-fit:cover;border-radius:7px}.pin{margin-left:auto;font-size:15px}.empty{text-align:center;color:var(--muted);padding:50px 20px;grid-column:1/-1}.fab{position:fixed;right:20px;bottom:22px;z-index:6;background:#252525;color:white;border-radius:18px;width:62px;height:62px;font-size:30px;box-shadow:0 7px 22px #0003}
+.modal{display:none;position:fixed;inset:0;z-index:10;background:var(--bg);overflow:auto}.modal.open{display:block}.editorhead{position:sticky;top:0;z-index:2;background:var(--accent);display:flex;gap:8px;align-items:center;padding:calc(8px + env(safe-area-inset-top)) 12px 8px}.editorhead .spacer{flex:1}.editorhead button{padding:10px 12px;border-radius:11px;background:#ffffff78}.editor{max-width:850px;margin:auto;padding:14px 16px 40px}.field{width:100%;border:0;background:transparent;outline:none;color:var(--text)}#noteTitle{font-size:24px;font-weight:750;margin:7px 0 12px}#noteBody{font-size:17px;line-height:1.65;resize:vertical;min-height:180px;padding:8px 0;background-image:linear-gradient(transparent 31px,#00000009 32px);background-size:100% 32px}
+.section{margin-top:16px}.sectionlabel{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin-bottom:8px}.colors{display:flex;gap:10px;flex-wrap:wrap}.swatch{width:30px;height:30px;border-radius:50%;border:2px solid #00000012}.swatch.selected{outline:3px solid #333;outline-offset:2px}.images{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.imageitem{position:relative}.imageitem img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block}.imageitem button{position:absolute;right:4px;top:4px;background:#000b;color:#fff;border-radius:50%;width:27px;height:27px}.addimage{border:1px dashed #aaa;background:#ffffff7a;border-radius:10px;min-height:85px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;color:#555;font-size:13px}.meta{color:var(--muted);font-size:12px;margin-top:14px}.checkrow{display:flex;gap:8px;align-items:center;margin:7px 0}.checkrow input{width:18px;height:18px;accent-color:#333}.checkrow input:checked+span{text-decoration:line-through;color:#888}.checkrow button{margin-left:auto;background:transparent;color:#777}.checklistitems{margin-top:8px}.checkinput{width:100%;border:1px solid var(--line);background:white;border-radius:10px;padding:10px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.actions button{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px}.actions .danger{color:#b42318}.toast{position:fixed;bottom:94px;left:50%;transform:translateX(-50%);background:#252525;color:white;padding:10px 15px;border-radius:12px;z-index:20;display:none;max-width:90%;font-size:14px}
+#modal.view .editonly{display:none!important}
+#noteView{font-size:17px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}#noteView a,.checkrow a{color:#0b57d0;text-decoration:underline;word-break:break-all}
+#modal:not(.view) .viewonly{display:none}
+#modal.view #noteBody{min-height:0;resize:none;background-image:none;overflow:hidden;padding:0}
+#modal.view #noteTitle{margin-bottom:10px}
+#modal.view .images{grid-template-columns:1fr}
+#modal.view .imageitem img{aspect-ratio:auto;height:auto;object-fit:contain;background:#0000000a}
+.editorhead .primary{background:#252525;color:#fff}.editorhead button{white-space:nowrap}@media(max-width:400px){.editorhead{gap:6px}.editorhead button{padding:10px 9px;font-size:14px}}.editorhead .dangertop{color:#b42318;font-weight:600}
+#confirmBox{position:fixed;inset:0;z-index:30;background:#0006;display:flex;align-items:center;justify-content:center;padding:20px}#confirmBox[hidden]{display:none}
+.cbox{background:#fff;border-radius:16px;padding:20px;max-width:340px;width:100%;box-shadow:0 10px 30px #0004}.cbox p{margin:0;font-size:16px}.cbtns{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}.cbtns button{padding:10px 14px;border-radius:10px;background:#eee}.cbtns #cbYes{background:#b42318;color:#fff}
+#shared{min-height:100vh;background:var(--bg)}
+.shbar{position:sticky;top:0;z-index:2;background:var(--accent);padding:calc(12px + env(safe-area-inset-top)) 16px 12px;font-weight:700;box-shadow:0 2px 7px #00000012}
+.shnote{width:calc(100% - 24px);max-width:850px;margin:16px auto;padding:20px 18px;border-radius:14px;box-shadow:var(--shadow);border:1px solid #00000008}
+.shnote h1{font-size:26px;line-height:1.25;margin:0 0 12px;overflow-wrap:anywhere}
+.shbody{font-size:17px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}.shbody a{color:#0b57d0;text-decoration:underline;word-break:break-all}
+.shchecks{margin-top:14px}.shimgs{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}.shimgs img{width:100%;height:auto;border-radius:10px;display:block}
+.shfoot{text-align:center;padding:4px 16px 34px;font-size:14px;color:var(--muted)}.shfoot a{color:#555}
+@media(min-width:700px){#modal.view .images{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:700px){.notes{grid-template-columns:repeat(3,minmax(0,1fr))}.note{min-height:150px}.editor{padding:22px 26px}.images{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:380px){.notes{grid-template-columns:1fr}.note{min-height:110px}.toolbar{flex-wrap:wrap}.count{width:100%;margin-left:0}}
+</style>
+</head>
+<body>
+<header>
+ <div class="top"><div class="brand">🗒️ Meu Bloco</div><button class="iconbtn" id="viewBtn" title="Alternar visualização">▦</button></div>
+ <div class="searchwrap"><input id="search" type="search" placeholder="🔎  Buscar nas anotações..." autocomplete="off"></div>
+</header>
+<main>
+ <div class="toolbar">
+  <span class="count" id="count"></span>
+ </div>
+ <div class="notes" id="notes"></div>
+</main>
+<button class="fab" id="newBtn" aria-label="Criar anotação">＋</button>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true">
+ <div class="editorhead">
+  <button id="backBtn">← Voltar</button><span class="spacer"></span>
+  <button id="pinBtn" class="editonly" title="Fixar anotação">📌</button><button id="shareBtn" title="Compartilhar link da nota">↗</button><button id="editBtn" class="viewonly primary">✎ Editar</button><button id="delTopBtn" class="viewonly dangertop" title="Excluir anotação">🗑 Excluir</button><button id="saveBtn" class="editonly">Salvar ✓</button>
+ </div>
+ <div class="editor">
+  <input id="noteTitle" class="field" placeholder="Título da anotação" maxlength="140">
+  <textarea id="noteBody" class="field" placeholder="Escreva sua anotação aqui..." rows="8"></textarea>
+  <div id="noteView" class="viewonly"></div>
+  <div class="section editonly" id="secColor"><div class="sectionlabel">Cor da anotação</div><div class="colors" id="colors"></div></div>
+  <div class="section" id="secImages"><div class="sectionlabel">Fotos e imagens</div><div class="images" id="images"></div>
+   <label class="addimage editonly" for="imageInput" style="margin-top:8px;cursor:pointer"><span style="font-size:25px">＋</span><span>Adicionar imagem</span></label>
+   <input id="imageInput" type="file" accept="image/*" multiple hidden>
+   <div class="meta editonly">As imagens são guardadas junto com a anotação neste navegador.</div>
+  </div>
+  <div class="section" id="secChecks"><div class="sectionlabel">Lista de tarefas</div><div id="checklistitems"></div>
+   <div class="editonly" style="display:flex;gap:8px;margin-top:8px"><input id="newItem" class="checkinput" placeholder="Adicionar item à lista"><button class="pill" id="addItem">Adicionar</button></div>
+  </div>
+  <div class="actions editonly"><button id="deleteBtn" class="danger">🗑 Excluir anotação</button><button id="duplicateBtn">▣ Duplicar</button></div>
+  <div class="meta" id="lastSaved"></div>
+ </div>
+</div>
+<div id="shared" hidden>
+ <div class="shbar">📄 Nota compartilhada · somente leitura</div>
+ <article class="shnote" id="shNote"></article>
+ <div class="shfoot"><a href="#" id="shOpen">Abrir o Meu Bloco</a></div>
+</div>
+<div id="confirmBox" hidden><div class="cbox" role="alertdialog" aria-modal="true"><p id="cbMsg"></p><div class="cbtns"><button id="cbNo">Cancelar</button><button id="cbYes">Excluir</button></div></div></div>
+<div class="toast" id="toast"></div>
+<script>
+(()=> {
+ const $=s=>document.querySelector(s);
+ const palette=[['Amarelo','#fff2b3'],['Azul','#d8ecff'],['Verde','#dff4d4'],['Rosa','#ffe0e6'],['Lilás','#e9e0ff'],['Laranja','#ffe5cc'],['Branco','#ffffff']];
+ let notes=[],currentId=null,currentColor='#fff2b3',currentImages=[],currentChecks=[],pinned=false,mode='edit',grid=true,dirty=false;
+ const DB='meuBlocoNotas_v1';
+ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+ let toastTimer;function toast(s,ms=2400){const t=$('#toast');t.textContent=s;t.style.display='block';clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.style.display='none',ms)}
+ function load(){try{notes=JSON.parse(localStorage.getItem(DB)||'[]')}catch(e){notes=[]}render()}
+ function persist(){try{localStorage.setItem(DB,JSON.stringify(notes));return true}catch(e){toast('Armazenamento cheio. Remova imagens grandes ou notas antigas.');return false}}
+ function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+ function linkify(t=''){const re=/(https?:\/\/|www\.)[^\s<>"']+/gi;let out='',last=0,m;while((m=re.exec(t))){let u=m[0],tail='';const x=u.match(/[.,;:!?)\]}]+$/);if(x){tail=x[0];u=u.slice(0,-tail.length)}const href=/^www\./i.test(u)?'https://'+u:u;out+=esc(t.slice(last,m.index))+'<a href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">'+esc(u)+'</a>';last=m.index+u.length}return out+esc(t.slice(last))}
+ // ===== Compartilhamento por link (somente leitura) =====
+ const SH_MAX=60000;
+ function b64u(bytes){let s='';for(let i=0;i<bytes.length;i+=0x8000)s+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+ function unb64u(str){str=str.replace(/-/g,'+').replace(/_/g,'/');while(str.length%4)str+='=';const bin=atob(str),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return a}
+ async function pipe(bytes,stream){return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer())}
+ async function encodeNote(obj){const raw=new TextEncoder().encode(JSON.stringify(obj));if(typeof CompressionStream==='function'){try{return 'n1='+b64u(await pipe(raw,new CompressionStream('deflate-raw')))}catch(e){}}return 'n0='+b64u(raw)}
+ async function decodeNote(h){const m=h.match(/^#(n[01])=([A-Za-z0-9_-]+)$/);if(!m)return null;let bytes=unb64u(m[2]);if(m[1]==='n1')bytes=await pipe(bytes,new DecompressionStream('deflate-raw'));return JSON.parse(new TextDecoder().decode(bytes))}
+ function shrink(src,max=480,q=.5){return new Promise(res=>{const img=new Image();img.onerror=()=>res(null);img.onload=()=>{const sc=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);c.getContext('2d').drawImage(img,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',q))};img.src=src})}
+ async function buildShareLink(){
+  const base={t:$('#noteTitle').value.trim(),b:$('#noteBody').value,col:currentColor,k:currentChecks.map(x=>[x.text,x.done?1:0]),i:[]};
+  const total=currentImages.length,mk=h=>location.href.split('#')[0]+'#'+h;
+  let h=await encodeNote(base);
+  if(total){
+   // tenta a melhor qualidade que ainda cabe no link, reduzindo aos poucos
+   for(const [max,q] of [[1100,.78],[900,.72],[720,.66],[560,.58],[440,.5],[340,.45]]){
+    const imgs=[];for(const src of currentImages){const r=await shrink(src,max,q);if(r)imgs.push(r)}
+    base.i=imgs;h=await encodeNote(base);if(mk(h).length<=SH_MAX)break
+   }
+   while(mk(h).length>SH_MAX&&base.i.length){base.i.pop();h=await encodeNote(base)}
+  }
+  return{url:mk(h),images:base.i.length,total}
+ }
+ function showShared(n){
+  const okImg=s=>typeof s==='string'&&/^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(s);
+  const col=/^#[0-9a-f]{3,8}$/i.test(n.col||'')?n.col:'#ffffff';
+  const title=String(n.t||'Sem título'),body=String(n.b||''),checks=Array.isArray(n.k)?n.k:[],imgs=(Array.isArray(n.i)?n.i:[]).filter(okImg);
+  document.querySelector('header').hidden=true;$('main').hidden=true;$('#newBtn').hidden=true;
+  const box=$('#shNote');box.style.background=col;
+  box.innerHTML='<h1>'+esc(title)+'</h1>'
+   +(body.trim()?'<div class="shbody">'+linkify(body)+'</div>':'')
+   +(checks.length?'<div class="shchecks">'+checks.map(c=>'<div class="checkrow"><input type="checkbox" disabled '+(c[1]?'checked':'')+'><span>'+linkify(String(c[0]||''))+'</span></div>').join('')+'</div>':'')
+   +(imgs.length?'<div class="shimgs">'+imgs.map(s=>'<img src="'+esc(s)+'" alt="Imagem anexada">').join('')+'</div>':'');
+  document.title=title+' — Meu Bloco';$('#shared').hidden=false;window.scrollTo(0,0)
+ }
+ function date(s){try{return new Date(s).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}catch(e){return ''}}
+ function render(){const q=$('#search').value.trim().toLowerCase();let arr=notes.filter(n=>{const match=(n.title+' '+n.body+' '+(n.checks||[]).map(x=>x.text).join(' ')).toLowerCase().includes(q);return match});arr.sort((a,b)=>(!!b.pinned-!!a.pinned)||(b.updated||0)-(a.updated||0));$('#count').textContent=arr.length+' anotação'+(arr.length===1?'':'ões');$('#notes').style.gridTemplateColumns=grid?'':'1fr';
+  $('#notes').innerHTML=arr.length?arr.map(n=>`<article class="note" style="background:${n.color||'#fff'}" data-id="${n.id}"><h3>${esc(n.title||'Sem título')}</h3>${n.body?`<div class="preview">${esc(n.body)}</div>`:''}${n.checkMode&&n.checks?.length?`<div class="preview">${n.checks.slice(0,3).map(x=>(x.done?'☑ ':'☐ ')+esc(x.text)).join('<br>')}</div>`:''}${n.images?.length?`<div class="thumbs">${n.images.slice(0,4).map(src=>`<img src="${src}" alt="Imagem anexada">`).join('')}</div>`:''}<div class="notefoot"><span>${n.checkMode?'☑ Lista':'▤ Nota'}</span><span>· ${date(n.updated||n.created)}</span>${n.images?.length?'<span>· 🖼 '+n.images.length+'</span>':''}${n.pinned?'<span class="pin">📌</span>':''}</div></article>`).join(''):'<div class="empty">📝<br><strong>Nenhuma anotação por aqui</strong><br>Toque no botão ＋ para criar sua primeira nota.</div>';
+ }
+ function openEditor(id=null,m){currentId=id;mode=m||(id?'view':'edit');let n=notes.find(x=>x.id===id);if(!n)n={title:'',body:'',color:palette[0][1],images:[],checks:[],pinned:false,checkMode:false};$('#noteTitle').value=n.title||'';$('#noteBody').value=n.body||'';currentColor=n.color||palette[0][1];currentImages=[...(n.images||[])];currentChecks=(n.checks||[]).map(x=>({...x}));pinned=!!n.pinned;$('#pinBtn').textContent=pinned?'📌 Fixada':'📌 Fixar';$('#lastSaved').textContent=n.updated?'Última edição: '+new Date(n.updated).toLocaleString('pt-BR'):'';renderColors();$('#modal').classList.add('open');document.body.style.overflow='hidden';applyMode();$('#modal').scrollTop=0;if(mode==='edit')setTimeout(()=>$('#noteTitle').focus(),100)}
+ function applyMode(){const v=mode==='view';$('#modal').classList.toggle('view',v);$('#noteTitle').readOnly=v;$('#noteBody').readOnly=v;$('#noteBody').style.display=v?'none':'';$('#noteView').innerHTML=v?linkify($('#noteBody').value):'';$('#secImages').style.display=(v&&!currentImages.length)?'none':'';$('#secChecks').style.display=(v&&!currentChecks.length)?'none':'';renderImages();renderChecks();fitBody()}
+ function fitBody(){const b=$('#noteBody');b.style.height='';if(mode==='view'){b.style.height='auto';b.style.height=b.scrollHeight+'px'}}
+ function closeEditor(){if($('#modal').classList.contains('open')&&mode==='edit')saveNote(true);$('#modal').classList.remove('open');document.body.style.overflow='';currentId=null;render()}
+ function renderColors(){$('#colors').innerHTML=palette.map(([name,c])=>`<button class="swatch ${currentColor===c?'selected':''}" style="background:${c}" data-color="${c}" title="${name}" aria-label="${name}"></button>`).join('')}
+ function renderImages(){$('#images').innerHTML=currentImages.map((src,i)=>`<div class="imageitem"><img src="${src}" alt="Imagem ${i+1}"><button class="editonly" data-remove-image="${i}" aria-label="Remover imagem">×</button></div>`).join('')}
+ function renderChecks(){$('#checklistitems').innerHTML=currentChecks.map((x,i)=>`<div class="checkrow"><input type="checkbox" data-check="${i}" ${x.done?'checked':''} ${mode==='view'?'disabled':''}><span>${mode==='view'?linkify(x.text):esc(x.text)}</span><button class="editonly" data-remove-check="${i}" aria-label="Remover item">×</button></div>`).join('')}
+ function saveNote(silent=false){if(currentId===null&&!$('#noteTitle').value.trim()&&!$('#noteBody').value.trim()&&!currentImages.length&&!currentChecks.length){if(!silent)toast('Escreva algo ou adicione uma imagem.');return false}
+  const old=notes.find(x=>x.id===currentId);const n={id:currentId||uid(),title:$('#noteTitle').value.trim(),body:$('#noteBody').value,color:currentColor,images:currentImages,checks:currentChecks,pinned,checkMode:currentChecks.length>0,created:old?.created||Date.now(),updated:Date.now()};if(!n.title)n.title=n.body.trim().split('\n')[0].slice(0,45)||(currentImages.length?'Anotação com imagens':'Lista de tarefas');if(old)notes=notes.map(x=>x.id===currentId?n:x);else notes.push(n);currentId=n.id;persist();$('#lastSaved').textContent='Salvo em '+new Date(n.updated).toLocaleString('pt-BR');if(!silent)toast('Anotação salva!');render();return true}
+ $('#newBtn').onclick=()=>openEditor();$('#editBtn').onclick=()=>{mode='edit';applyMode();$('#noteTitle').focus()};$('#backBtn').onclick=closeEditor;$('#saveBtn').onclick=()=>{if(saveNote()){mode='view';applyMode();$('#modal').scrollTop=0}};
+ $('#notes').onclick=e=>{const card=e.target.closest('[data-id]');if(card)openEditor(card.dataset.id)};
+ $('#search').oninput=render;
+ $('#viewBtn').onclick=()=>{grid=!grid;render();$('#viewBtn').textContent=grid?'▦':'☰'};
+ $('#colors').onclick=e=>{const b=e.target.closest('[data-color]');if(b){currentColor=b.dataset.color;renderColors()}};
+ $('#imageInput').onchange=async e=>{const files=[...e.target.files];for(const file of files){if(!file.type.startsWith('image/'))continue;try{const data=await compress(file);currentImages.push(data)}catch(err){toast('Não foi possível carregar uma das imagens.')}}renderImages();e.target.value=''};
+ function compress(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=reject;reader.onload=()=>{const img=new Image();img.onerror=()=>resolve(reader.result);img.onload=()=>{const max=1400,scale=Math.min(1,max/Math.max(img.width,img.height)),canvas=document.createElement('canvas');canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);resolve(canvas.toDataURL('image/jpeg',.82))};img.src=reader.result};reader.readAsDataURL(file)})}
+ $('#images').onclick=e=>{const b=e.target.closest('[data-remove-image]');if(b){currentImages.splice(+b.dataset.removeImage,1);renderImages()}};
+ $('#addItem').onclick=()=>{const v=$('#newItem').value.trim();if(v){currentChecks.push({text:v,done:false});$('#newItem').value='';renderChecks()}};
+ $('#newItem').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('#addItem').click()}};
+ $('#checklistitems').onclick=e=>{const r=e.target.closest('[data-remove-check]');if(r){currentChecks.splice(+r.dataset.removeCheck,1);renderChecks()}};
+ $('#checklistitems').onchange=e=>{const c=e.target.closest('[data-check]');if(c){currentChecks[+c.dataset.check].done=c.checked;renderChecks()}};
+ $('#pinBtn').onclick=()=>{pinned=!pinned;$('#pinBtn').textContent=pinned?'📌 Fixada':'📌 Fixar'};
+ function askConfirm(msg){return new Promise(res=>{$('#cbMsg').textContent=msg;$('#confirmBox').hidden=false;const done=v=>{$('#confirmBox').hidden=true;$('#cbYes').onclick=$('#cbNo').onclick=null;res(v)};$('#cbYes').onclick=()=>done(true);$('#cbNo').onclick=()=>done(false)})}
+ $('#deleteBtn').onclick=async()=>{if(!currentId){$('#modal').classList.remove('open');document.body.style.overflow='';return}if(await askConfirm('Excluir esta anotação permanentemente?')){notes=notes.filter(n=>n.id!==currentId);persist();$('#modal').classList.remove('open');document.body.style.overflow='';currentId=null;render();toast('Anotação excluída.')}};
+ $('#delTopBtn').onclick=$('#deleteBtn').onclick;
+ $('#duplicateBtn').onclick=()=>{saveNote(true);const n=notes.find(x=>x.id===currentId);if(n){const copy={...n,id:uid(),title:(n.title||'Anotação')+' (cópia)',created:Date.now(),updated:Date.now(),images:[...n.images],checks:n.checks.map(x=>({...x})),pinned:false};notes.push(copy);persist();openEditor(copy.id,'edit');toast('Cópia criada.')}};
+ $('#shareBtn').onclick=async()=>{
+  const title=$('#noteTitle').value.trim();
+  if(!title&&!$('#noteBody').value.trim()&&!currentImages.length&&!currentChecks.length){toast('Não há nada para compartilhar.');return}
+  let r;try{r=await buildShareLink()}catch(e){toast('Não foi possível gerar o link.');return}
+  const notes_=[];
+  if(r.images<r.total)notes_.push('Link criado com '+r.images+' de '+r.total+' imagem(ns): o restante não coube no link.');
+  if(location.protocol==='file:')notes_.push('Atenção: o Meu Bloco está aberto como arquivo no seu aparelho. Para outras pessoas abrirem o link, hospede este arquivo num endereço da internet.');
+  if(notes_.length)toast(notes_.join(' '),7000);
+  let done=false;
+  if(navigator.share){try{await navigator.share({title:title||'Minha anotação',url:r.url});done=true}catch(e){if(e&&e.name==='AbortError')return}}
+  if(!done){try{await navigator.clipboard.writeText(r.url);if(!notes_.length)toast('Link copiado! Cole onde quiser compartilhar.');done=true}catch(e){}}
+  if(!done)prompt('Copie o link da nota:',r.url)
+ };
+ // Salva automaticamente o rascunho atual ao sair do campo.
+ let autosaveTimer;['#noteTitle','#noteBody'].forEach(sel=>$(sel).addEventListener('input',()=>{clearTimeout(autosaveTimer);autosaveTimer=setTimeout(()=>{if($('#modal').classList.contains('open')&&mode==='edit')saveNote(true)},700)}));
+ window.addEventListener('beforeunload',()=>{if($('#modal').classList.contains('open')&&mode==='edit')saveNote(true)});
+ $('#shOpen').onclick=e=>{e.preventDefault();history.replaceState(null,'',location.pathname+location.search);location.reload()};
+ window.addEventListener('hashchange',()=>{if(/^#n[01]=/.test(location.hash))location.reload()});
+ (async()=>{let sh=null,bad=false;if(/^#n[01]=/.test(location.hash)){try{sh=await decodeNote(location.hash)}catch(e){bad=true}}if(sh)showShared(sh);else{if(bad)toast('Não foi possível abrir este link de nota.',5000);load()}})();
+})();
+</script>
+</body>
+</html>
